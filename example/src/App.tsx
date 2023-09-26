@@ -1,18 +1,23 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'react-native-yl-event-emitter';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { sendEventToNative } from 'react-native-yl-event-emitter';
 
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
 
-  React.useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
+
+  const sendMessage = ()=>{
+    sendEventToNative(3, 7).then(setResult);
+
+  }
+
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={sendMessage}>
       <Text>Result: {result}</Text>
+      </TouchableOpacity>
     </View>
   );
 }

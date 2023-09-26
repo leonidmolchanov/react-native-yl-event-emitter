@@ -6,7 +6,9 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const YlEventEmitter = NativeModules.YlEventEmitter
+const YlEventEmitter: {
+  sendEventToNative: (message: string) => Promise<boolean>;
+} = NativeModules.YlEventEmitter
   ? NativeModules.YlEventEmitter
   : new Proxy(
       {},
@@ -17,6 +19,6 @@ const YlEventEmitter = NativeModules.YlEventEmitter
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return YlEventEmitter.multiply(a, b);
+export function sendEventToNative(message: string): Promise<boolean> {
+  return YlEventEmitter.sendEventToNative(message);
 }
