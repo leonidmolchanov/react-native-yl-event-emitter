@@ -1,28 +1,27 @@
 import Foundation
 
-
 @objc(YlEventEmitter)
-class YlEventEmitter: RCTEventEmitter {
+public class YlEventEmitter: RCTEventEmitter {
 
-    override func supportedEvents() -> [String]! {
+    public override func supportedEvents() -> [String]! {
         return ["YLModulesEvent"]
     }
-    override func startObserving() {
+    public override func startObserving() {
         NotificationCenter.default.addObserver(self, selector: #selector(emitEventInternal(_:)), name: NSNotification.Name(rawValue: "event-emitted"), object: nil)
     }
-    
-    override func stopObserving() {
+
+    public override func stopObserving() {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     @objc func emitEventInternal(_ notification: NSNotification)  {
         let eventName: String = notification.userInfo?["eventName"] as! String
         self.sendEvent(withName: eventName, body: notification.userInfo)
     }
- 
+
     @objc(sendEventToNative:withResolver:withRejecter:)
      func sendEventToNative(_ json: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) {
-        
+
         // Decoding
             do {
                 let decoder = JSONDecoder()
@@ -34,10 +33,11 @@ class YlEventEmitter: RCTEventEmitter {
                 resolve(true)
             } catch {
                 print(error)
-//                reject(error as String)
+                reject("\(error._code)","YLModulesEvent - error parse message to emitter", error)
             }
     }
-//    
+
+
     public static func sendEventToJS (_ payload:[String: String]){
         do {
             let convertPayload = YLEventEmitterSendData(data:payload)
