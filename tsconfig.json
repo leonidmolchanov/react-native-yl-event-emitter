@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "rootDir": ".",
+    "baseUrl": "./",
     "paths": {
+      "react": ["node_modules/@types/react"],
       "react-native-yl-event-emitter": ["./src/index"]
     },
     "allowUnreachableCode": false,
@@ -22,7 +23,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext",
-    "verbatimModuleSyntax": true
+    "target": "esnext"
   }
 }

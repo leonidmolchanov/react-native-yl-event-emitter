@@ -1,22 +1,21 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { sendEventToNative } from 'react-native-yl-event-emitter';
+import { RNYLEventEmitter } from 'react-native-yl-event-emitter';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const [result, setResult] = React.useState<boolean | undefined>();
 
+  const emitter = new RNYLEventEmitter();
 
-  const sendMessage = ()=>{
-    sendEventToNative(3, 7).then(setResult);
-
-  }
-
+  const sendMessage = () => {
+    emitter.sendEventToNative('test').then(setResult);
+  };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={sendMessage}>
-      <Text>Result: {result}</Text>
+        <Text>Result: {result ? 'y' : 'n'}</Text>
       </TouchableOpacity>
     </View>
   );
