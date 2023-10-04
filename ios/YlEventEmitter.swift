@@ -20,17 +20,58 @@ public class YlEventEmitter: RCTEventEmitter {
     }
 
     @objc(sendEventToNative:withResolver:withRejecter:)
-     func sendEventToNative(_ json: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) {
+     func sendEventToNative(_ json: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) {
+
 
         // Decoding
             do {
                 let decoder = JSONDecoder()
                 let response = try decoder.decode(JSONMessage.self, from: json.data(using: .utf8)!)
-                print(response)
                 var params = response.data
                 params["eventName"] = response.eventName
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: response.rawValue), object: self, userInfo: params)
-                resolve(true)
+
+
+                if #available(iOS 13.0, *) {
+                    Task {
+                        do {
+
+                            if #available(iOS 15, *) {
+                                let customNotificationName = Notification.Name("event-emitted")
+                                let notifications = NotificationCenter.default.notifications(named: customNotificationName,
+                                                                                             object: nil)
+
+                                let seconds = 4.0
+                                DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+//                                    reject("48", error.localizedDescription, error as! Error)
+                                    return
+                                }
+
+                                for await notification in notifications {
+                                    print("hohoh")
+                                    print(notification.userInfo)
+                                    print("hohoh-end")
+                                    if((notification.userInfo?["payload"]) != nil){
+                                        resolve(notification.userInfo)
+                                    }
+                                    return
+                                }
+
+                            } else {
+//                                reject("02", "Отработала задержка", "Отработала задержка" as! Error)
+
+                            }
+
+                        } catch {
+//                            reject("02", "Отработала задержка", "Отработала задержка" as! Error)
+
+                        }
+                    }
+                }
+
+
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "event-emitted"), object: self, userInfo: ["eventName":"YLModulesEvent", "payload":params])
+
             } catch {
                 print(error)
                 reject("\(error._code)","YLModulesEvent - error parse message to emitter", error)

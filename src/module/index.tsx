@@ -27,20 +27,17 @@ export class RNYLEventEmitter {
     this.instance = new NativeEventEmitter(NativeModules.YlEventEmitter);
   }
 
-  private prepareData = (event: string, callback: (e: any) => void) => {
-    return (e: string) => {
-      if (isJson(e) && event) {
-        const data = JSON.parse(e);
-        callback(data.payload);
+  private prepareData = (callback: (e: any) => void) => {
+    return (e: { payload: string }) => {
+      if (isJson(e.payload)) {
+        const data = JSON.parse(e.payload);
+        callback(data);
       }
     };
   };
 
   public addListener = (event: string, onData: (e: any) => void) => {
-    return this.instance.addListener(
-      'YLModulesEvent',
-      this.prepareData(event, onData)
-    );
+    return this.instance.addListener(event, this.prepareData(onData));
   };
 
   public sendEventToNative(message: string): Promise<boolean> {
