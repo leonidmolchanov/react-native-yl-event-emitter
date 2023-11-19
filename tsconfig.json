@@ -2,17 +2,24 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "react": ["node_modules/@types/react"],
-      "react-native-yl-event-emitter": ["./src/index"]
+      "react": [
+        "node_modules/@types/react"
+      ],
+      "react-native-yl-event-emitter": [
+        "./src/index"
+      ]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
-    "lib": ["esnext"],
+    "lib": [
+      "esnext"
+    ],
     "module": "esnext",
     "moduleResolution": "node",
+    "noImplicitAny": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
