@@ -22,6 +22,7 @@ export const useModule = <T extends Partial<T>, U extends Partial<U>>(
         eventName: eventName,
         target: moduleName,
         data: data,
+        subscribe: !!subscribe,
       });
       return;
     }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C7BEC2CB2B0A793B0069BE5C /* YLEventEmitterConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7BEC2CA2B0A4ED00069BE5C /* YLEventEmitterConstants.swift */; };
 		F4FF95D7245B92E800C19C63 /* YlEventEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* YlEventEmitter.swift */; };
 /* End PBXBuildFile section */
 
@@ -117,6 +118,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7BEC2CB2B0A793B0069BE5C /* YLEventEmitterConstants.swift in Sources */,
 				F4FF95D7245B92E800C19C63 /* YlEventEmitter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

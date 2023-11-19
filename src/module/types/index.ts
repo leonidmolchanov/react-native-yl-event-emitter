@@ -3,6 +3,7 @@ export interface ISendEventParams {
   target: string;
   timeout?: number;
   data?: Object;
+  subscribe?: boolean;
 }
 
 export interface ISendEventResponse<T> {

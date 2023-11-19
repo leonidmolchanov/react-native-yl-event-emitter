@@ -72,9 +72,11 @@ public class YlEventEmitter: RCTEventEmitter {
 
 
                 // Таймер бездействия, если модуль не отвечает вызывается этот блок
-                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(timeout)) {
-                    if let callback = self.callbacksBuffers[uuid] {
-                        callback.reject(ErrorCodes["timeout"]?.code, ErrorCodes["timeout"]?.message, ErrorCodes["timeout"]?.message as? Error)
+                if(timeout != 0){
+                    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(timeout)) {
+                        if let callback = self.callbacksBuffers[uuid] {
+                            callback.reject(ErrorCodes["timeout"]?.code, ErrorCodes["timeout"]?.message, ErrorCodes["timeout"]?.message as? Error)
+                        }
                     }
                 }
 

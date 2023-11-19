@@ -49,7 +49,11 @@ export class RNYLEventEmitter {
     return YlEventEmitter.sendEventToNative(
       params.target,
       params.eventName,
-      params?.timeout ? params?.timeout : DEFAULT_TIMEOUT,
+      params?.subscribe
+        ? 0
+        : params?.timeout
+        ? params?.timeout
+        : DEFAULT_TIMEOUT,
       data
     );
   }
