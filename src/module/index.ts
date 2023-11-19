@@ -14,7 +14,7 @@ const YlEventEmitter: {
     target: string,
     timeout: number | undefined,
     data?: undefined | string
-  ) => Promise<boolean>;
+  ) => Promise<string>;
   setSupportedEvents: (args: string[]) => void;
   addSupportedEvents: (args: string[]) => void;
   responseByUUID: (uuid: string, data: string, error?: string) => void;
@@ -36,6 +36,36 @@ export class RNYLEventEmitter {
     this.instance = new NativeEventEmitter(NativeModules.YlEventEmitter);
   }
 
+  public addListener = (
+    event: string,
+    onData: (e: ISendEventResponse<unknown>) => void
+  ) => {
+    return this.instance.addListener(event, this.prepareData(event, onData));
+  };
+
+  public sendEventToNative(params: ISendEventParams): Promise<string> {
+    const data = params?.data && JSON.stringify(params?.data);
+
+    return YlEventEmitter.sendEventToNative(
+      params.target,
+      params.eventName,
+      params?.timeout ? params?.timeout : DEFAULT_TIMEOUT,
+      data
+    );
+  }
+
+  public setSupportedEvents(args: string[]): void {
+    return YlEventEmitter.setSupportedEvents(args);
+  }
+
+  public addSupportedEvents(args: string[]): void {
+    return YlEventEmitter.addSupportedEvents(args);
+  }
+
+  public responseByUUID(uuid: string, data: Object, error?: string): void {
+    return YlEventEmitter.responseByUUID(uuid, JSON.stringify(data), error);
+  }
+
   private prepareData = (
     _: string,
     callback: (e: ISendEventResponse<unknown>) => void
@@ -47,33 +77,6 @@ export class RNYLEventEmitter {
       });
     };
   };
-
-  public addListener = (
-    event: string,
-    onData: (e: ISendEventResponse<unknown>) => void
-  ) => {
-    return this.instance.addListener(event, this.prepareData(event, onData));
-  };
-
-  public sendEventToNative(params: ISendEventParams): Promise<boolean> {
-    const data = params?.data && JSON.stringify(params?.data);
-
-    return YlEventEmitter.sendEventToNative(
-      params.target,
-      params.eventName,
-      params?.timeout ? params?.timeout : DEFAULT_TIMEOUT,
-      data
-    );
-  }
-  public setSupportedEvents(args: string[]): void {
-    return YlEventEmitter.setSupportedEvents(args);
-  }
-  public addSupportedEvents(args: string[]): void {
-    return YlEventEmitter.addSupportedEvents(args);
-  }
-  public responseByUUID(uuid: string, data: Object, error?: string): void {
-    return YlEventEmitter.responseByUUID(uuid, JSON.stringify(data), error);
-  }
 }
 
 export const RNYLEventEmitterInstanse = new RNYLEventEmitter();
