@@ -5,7 +5,8 @@ import { ISendEventResponse } from '../module/types';
 export const useModule = <T extends Partial<T>, U extends Partial<U>>(
   moduleName: string,
   eventName?: string,
-  autoResponse: boolean = true
+  autoResponse: boolean = true,
+  subscribe?: boolean
 ): {
   data: T | null | undefined;
   error: U | null;
@@ -27,11 +28,14 @@ export const useModule = <T extends Partial<T>, U extends Partial<U>>(
   useEffect(() => {
     emitter.current = RNYLEventEmitter.addListener(
       moduleName,
-      // eslint-disable-next-line no-use-before-define
+
       // @ts-ignore
       (data: ISendEventResponse<T>) => {
         if (eventName && eventName !== data.eventName) {
           return;
+        }
+        if (subscribe) {
+          setData(data.data);
         }
         if (data.uuid) {
           setData(data.data);
@@ -45,7 +49,7 @@ export const useModule = <T extends Partial<T>, U extends Partial<U>>(
       }
     );
     // return () => emitter?.current?.remove();
-  }, [autoResponse, eventName, moduleName]);
+  }, [autoResponse, eventName, moduleName, subscribe]);
 
   return { data, error, response };
 };
