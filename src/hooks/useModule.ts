@@ -4,7 +4,7 @@ import { ISendEventResponse } from '../module/types';
 
 export const useModule = <T extends Partial<T>, U extends Partial<U>>(
   moduleName: string,
-  eventName?: string,
+  eventName: string,
   autoResponse: boolean = true,
   subscribe?: boolean
 ): {
@@ -17,6 +17,14 @@ export const useModule = <T extends Partial<T>, U extends Partial<U>>(
   const [error, setError] = useState<U | null>(null);
   const [lastUUID, setLastUUID] = useState<string | null>(null);
   const response = (data: string) => {
+    if (subscribe) {
+      RNYLEventEmitter.sendEventToNative({
+        eventName: eventName,
+        target: moduleName,
+        data: data,
+      });
+      return;
+    }
     if (lastUUID) {
       RNYLEventEmitter.responseByUUID(lastUUID, data);
     }
