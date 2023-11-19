@@ -3,92 +3,84 @@ import Foundation
 @objc(YlEventEmitter)
 public class YlEventEmitter: RCTEventEmitter {
 
+    // Поддерживаемые типы событий (можно добавить динамический)
+    var supportsEvents = DefaultEventsName
+    // Буффер для работы с обратными вызовами событий
+    var callbacksBuffers = [String : YLEventUUIDResponse]()
+
+    // Стадартный метод регистрации событий в EventEmitter
     public override func supportedEvents() -> [String]! {
-        return ["YLModulesEvent"]
+        return self.supportsEvents
     }
+    // старт метода для отслеживания событий внутри приложения
     public override func startObserving() {
-        NotificationCenter.default.addObserver(self, selector: #selector(emitEventInternal(_:)), name: NSNotification.Name(rawValue: "event-emitted"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(emitEventInternal(_:)), name: NSNotification.Name(rawValue: GlobalEventName), object: nil)
     }
 
+    // остановка метода для отслеживания событий внутри приложения
     public override func stopObserving() {
         NotificationCenter.default.removeObserver(self)
     }
 
+    // Метод для отправки сообзения в eventEmitter от центра сообщений приложения
     @objc func emitEventInternal(_ notification: NSNotification)  {
-        let eventName: String = notification.userInfo?["eventName"] as! String
-        self.sendEvent(withName: eventName, body: notification.userInfo)
+        let target: String = notification.userInfo?["target"] as! String
+        self.sendEvent(withName: target, body: notification.userInfo)
     }
 
-    @objc(sendEventToNative:withResolver:withRejecter:)
-     func sendEventToNative(_ json: String, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) {
-
-
-        // Decoding
+    // Метод для УСТАНОВКИ событий в eventEmitter
+    @objc(setSupportedEvents:)
+    func setSupportedEvents(_ args: NSArray) {
+        self.supportsEvents = args as! [String]
+        print(args)
+    }
+    // Метод для ДОБАВЛЕНИЯ событий в eventEmitter
+    @objc(addSupportedEvents:)
+    func addSupportedEvents(_ args: NSArray) {
+        self.supportsEvents = self.supportsEvents + args as! [String]
+        print(self.supportsEvents)
+    }
+    // Метод обратного вызова (ответа) на запрос к модулю, включает в себя как успешный, так и ответ с ошибкой
+    @objc(responseByUUID: data: error:)
+    func responseByUUID(_ uuid: String, data:String, error: String?) {
+        if let callback = self.callbacksBuffers[uuid] {
+            if (error != nil) {
+                callback.reject(ErrorCodes["summary"]?.code, error, error as? Error)
+            }
+            else{
+                callback.resolve(data)
+            }
+            self.callbacksBuffers[uuid] = nil
+        }
+    }
+    // Метод для отправки сообщения в модуль: target - Имя модуля, eventName- имя события в модуле, timeout - время ожидания ответа модуля, data - передаваемые данные в формате JSON
+    @objc(sendEventToNative:eventName:timeout:data:withResolver:withRejecter:)
+    func sendEventToNative(_ target: String, eventName: String?,timeout: NSInteger, data: String?, resolve: @escaping RCTPromiseResolveBlock,reject: @escaping RCTPromiseRejectBlock) {
             do {
-                let decoder = JSONDecoder()
-                let response = try decoder.decode(JSONMessage.self, from: json.data(using: .utf8)!)
-                var params = response.data
-                params["eventName"] = response.eventName
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: response.rawValue), object: self, userInfo: params)
+                // Уникальный индификатор запроса
+                let uuid = NSUUID().uuidString
+                var params = [
+                    "target" : target,
+                    "eventName": eventName,
+                    "data": data,
+                    "uuid": uuid
+                ]
+                self.callbacksBuffers[uuid] = YLEventUUIDResponse(resolve: resolve, reject: reject)
 
 
-                if #available(iOS 13.0, *) {
-                    Task {
-                        do {
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: GlobalEventName), object: self, userInfo: params)
 
-                            if #available(iOS 15, *) {
-                                let customNotificationName = Notification.Name("event-emitted")
-                                let notifications = NotificationCenter.default.notifications(named: customNotificationName,
-                                                                                             object: nil)
 
-                                let seconds = 4.0
-                                DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-//                                    reject("48", error.localizedDescription, error as! Error)
-                                    return
-                                }
-
-                                for await notification in notifications {
-                                    print("hohoh")
-                                    print(notification.userInfo)
-                                    print("hohoh-end")
-                                    if((notification.userInfo?["payload"]) != nil){
-                                        resolve(notification.userInfo)
-                                    }
-                                    return
-                                }
-
-                            } else {
-//                                reject("02", "Отработала задержка", "Отработала задержка" as! Error)
-
-                            }
-
-                        } catch {
-//                            reject("02", "Отработала задержка", "Отработала задержка" as! Error)
-
-                        }
+                // Таймер бездействия, если модуль не отвечает вызывается этот блок
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(timeout)) {
+                    if let callback = self.callbacksBuffers[uuid] {
+                        callback.reject(ErrorCodes["timeout"]?.code, ErrorCodes["timeout"]?.message, ErrorCodes["timeout"]?.message as? Error)
                     }
                 }
 
-
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "event-emitted"), object: self, userInfo: ["eventName":"YLModulesEvent", "payload":params])
-
             } catch {
-                print(error)
                 reject("\(error._code)","YLModulesEvent - error parse message to emitter", error)
             }
-    }
-
-
-    public static func sendEventToJS (_ payload:[String: String]){
-        do {
-            let convertPayload = YLEventEmitterSendData(data:payload)
-            let encodedData = try JSONEncoder().encode(convertPayload)
-            let jsonString = String(data: encodedData,
-                                    encoding: .utf8)
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "event-emitted"), object: self, userInfo: ["eventName":"YLModulesEvent", "payload":jsonString])
-        } catch {
-            print(error)
-        }
     }
 
 }
@@ -102,4 +94,9 @@ struct JSONMessage:Decodable {
 
 struct YLEventEmitterSendData: Codable {
     let data: [String: String]
+}
+
+struct YLEventUUIDResponse {
+  let resolve: RCTPromiseResolveBlock
+  let reject: RCTPromiseRejectBlock
 }
