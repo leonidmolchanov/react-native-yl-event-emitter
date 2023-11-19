@@ -2,14 +2,16 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "react-native-extended-websocket": [
+      "react": [
+        "node_modules/@types/react"
+      ],
+      "react-native-yl-event-emitter": [
         "./src/index"
       ]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
-    "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "lib": [
